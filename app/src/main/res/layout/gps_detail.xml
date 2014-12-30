@@ -1,8 +1,6 @@
-<!-- Master gps_detail. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_height="wrap_content"
@@ -60,7 +58,7 @@
             <!-- Humidity, wind, pressure -->
             <TextView
                 android:fontFamily="sans-serif-condensed"
-                android:id="@+id/detail_humidity_textview"
+                android:id="@+id/detail_longitude_textview"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
@@ -68,7 +66,7 @@
 
             <TextView
                 android:fontFamily="sans-serif-condensed"
-                android:id="@+id/detail_pressure_textview"
+                android:id="@+id/detail_latitude_textview"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
@@ -104,4 +102,4 @@
                 android:textAppearance="?android:textAppearanceLarge"/>
         </LinearLayout>
     </LinearLayout>
-</ScrollView>
+</ScrollLayout>

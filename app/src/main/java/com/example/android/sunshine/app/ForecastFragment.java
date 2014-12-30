@@ -43,7 +43,7 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import java.util.Date;
 
 /**
- * Encapsulates fetching the forecast and displaying it as a {@link android.widget.ListView} layout.
+ * Encapsulates fetching the forecast and displaying it as a {@link android.widget.ListView} gps_detail.
  */
 public class ForecastFragment extends Fragment implements LoaderCallbacks<Cursor> {
     public static final String LOG_TAG = ForecastFragment.class.getSimpleName();
