@@ -1,8 +1,8 @@
 <resources>
     <!--
-    For more on gps_detail aliases, see:
+    For more on layout aliases, see:
     http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
     -->
-    <!-- Replace fragment detail view with gps_detail that takes advantage of more available width.-->
+    <!-- Replace fragment detail view with layout that takes advantage of more available width.-->
     <item type="layout" name="fragment_detail">@layout/fragment_detail_wide</item>
 </resources>
