@@ -15,6 +15,11 @@ import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +27,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.view.Gravity;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
@@ -43,6 +50,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -53,6 +62,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
+    private static Location myLocation;
+    private static LocationManager myLocationManager;
+    private static LocationListener myLocationListener;
+    private static Geocoder myGeocoder;
+    private List<Address> addressList;
+    private Address currentAddress;
+    private static boolean GPS_State = false;
+    public static String cityPostCode= "38000";
 
 
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
@@ -70,13 +87,144 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
+        LanceGPS();
+    }
+
+    public void LanceGPS() {
+        Context context = this.getContext();
+        myLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        myLocation = myLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        myGeocoder = new Geocoder(this.getContext(), Locale.getDefault());
+        myLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("gpsListener", "LocationChanged : " + location.toString());
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+                Log.d("gpsListener", "StatusChanged : " + s +  i);
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+                Log.d("gpsListener","ProviderEnabled : "+s);
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+                Log.d("gpsListener", "ProviderDisabled : " + s);
+            }
+        };
+        startGPS();
+    }
+
+    /*Return current city Name got from gps
+     */
+    public  Address getCurrentGPSAddress() {
+        try {
+            addressList = myGeocoder.getFromLocation(myLocation.getLatitude(), myLocation.getLongitude(), 1);
+        } catch (IOException e) {
+            Log.e(this.getContext().toString(), "IO Exception in getFromLocation()");
+            e.printStackTrace();
+        }
+        currentAddress = addressList.get(0);
+        if (currentAddress != null && currentAddress.hasLatitude() && currentAddress.hasLongitude()) {
+            // Get the first address
+            Address address = addressList.get(0);
+            return addressList.get(0);
+        }else {
+            Log.e(this.getContext().toString(), "IO Exception in getFromLocation()");
+            return null;
+        }
+    }
+
+    private void startGPS() {
+        // TODO Auto-generated method stub
+        if (!GPS_State) {
+            // TODO Auto-generated method stub
+			/*
+			 * launch the GPS service and display in the gps tag
+			 */
+            myLocationListener.onProviderEnabled(LocationManager.GPS_PROVIDER);
+            launceGPS(myLocationListener);
+            GPS_State = true;
+            // to add the setting location of the apps
+        }
+    }
+
+    public void stopGPS() {
+        // TODO Auto-generated method stub
+        myLocationListener.onProviderDisabled(LocationManager.GPS_PROVIDER);
+        //myLocationManager.removeUpdates(myGpsLocationListener);
+        //to switch the app default location not dynamic
+        GPS_State = false;
+    }
+
+    /*
+     * launch the GPS sevice
+     */
+    public void launceGPS(LocationListener gpsLocationListener) {
+
+        printGpsLocation(myLocation);
+        if (myLocation == null) {
+            Context context = this.getContext();
+            CharSequence helloText = "Cannot open GPS service, please check your phone setting!";
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(context, helloText, duration);
+            toast.setGravity(Gravity.CENTER_VERTICAL,0,0);
+            toast.show();
+        }
+        myLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10 , gpsLocationListener);
+    }
+
+    /*
+     * print the GPS location on the GPS tag
+     */
+    public void printGpsLocation(Location location) {
+        if (location != null) {
+            location.getAccuracy();
+            location.getAltitude();
+            location.getLatitude();
+            location.getLongitude();
+            location.getSpeed();
+            location.getBearing();
+//
+//            Remote_GPS_info.setText("Accuracy : " + location.getAccuracy() +
+//                    "\nAltitude : " + location.getAltitude() +
+//                    "\nBearing : " + location.getBearing() +
+//                    "\nSpeed : " + location.getSpeed() +
+//                    "\nLatitude ：" + location.getLatitude() +
+//                    "\nLongitude : " + location.getLongitude());
+        }
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(LOG_TAG, "Starting sync");
         // Getting the zipcode to send to the API
-        String locationQuery = Utility.getPreferredLocation(getContext());
+
+        String locationQuery;
+
+        if (Utility.getPreferredLocationGPSEnabled(getContext())){
+            startGPS();
+            locationQuery = currentAddress.getPostalCode();
+            cityPostCode = locationQuery;
+            Context context = this.getContext();
+            CharSequence helloText = "Current postCode is: "+ locationQuery+" GPS is: "+Utility.getPreferredLocationGPSEnabled(getContext());
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(context, helloText, duration);
+            toast.setGravity(Gravity.CENTER_VERTICAL,0,0);
+            toast.show();
+        }else{
+            stopGPS();
+            locationQuery = Utility.getPreferredLocation(getContext());
+            Context context = getContext();
+            cityPostCode = context.getString(R.string.default_CityPostCode);
+        }
+
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.

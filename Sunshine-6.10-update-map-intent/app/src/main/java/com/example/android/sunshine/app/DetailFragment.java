@@ -36,6 +36,7 @@ import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -171,7 +172,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATETEXT + " ASC";
 
-        mLocation = Utility.getPreferredLocation(getActivity());
+        if (Utility.getPreferredLocationGPSEnabled(getActivity())){
+            mLocation = SunshineSyncAdapter.cityPostCode;
+        }else {
+            mLocation = Utility.getPreferredLocation(getActivity());
+        }
+
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                 mLocation, mDateStr);
 

@@ -15,15 +15,14 @@
  */
 package com.example.android.sunshine.app;
 
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
@@ -78,6 +77,13 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Context context = getApplicationContext();
+            CharSequence helloText = "Redirecting to Set up!";
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(context, helloText, duration);
+            toast.setGravity(Gravity.CENTER_VERTICAL,0,0);
+            toast.show();
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
